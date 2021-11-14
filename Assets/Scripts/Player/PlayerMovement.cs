@@ -21,13 +21,28 @@ public class PlayerMovement : MonoBehaviour
     public float dashForce;
     public float dashTimer;
     public float dashCooldown;
+    [Header("Boost Settings")]
+    public Transform fishyPos;
+    public float boostCooldown;
+    public float boostForce;
+    public GameObject boostCam;
+    public float boostTimer;
+    public float onBoost;
+    public GameObject arrow;
+    [Header("Others")]
+    public bool boosting;
+    public bool dashing;
+    public bool isJumping;
+    float currentBoostTimer;
+    bool canBoost;
+    Vector2 boostDirection;
+    Vector2 dashDirection;
+    float onBoostInternal;
+    float boostInternalCooldown;
     float dashInternalCooldown;
     float currentDashTimer;
-    public bool dashing;
     bool canDash;
-
     float internalJumpTimer;
-    public bool isJumping;
     int direction;
     int lookDirection;
     float collisionNormal;
@@ -36,6 +51,8 @@ public class PlayerMovement : MonoBehaviour
     {
         canDash = true;
         internalJumpTimer = jumpTimer;
+        boostInternalCooldown = 0f;
+        onBoostInternal = onBoost;
     }
     /// <summary>
     /// Handles all movement.
@@ -50,20 +67,33 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void HandleDirection()
     {
-        if(playerInputs.horizontalInput != 0 && !dashing) lookDirection = ((int)playerInputs.horizontalInput);
-        if(lookDirection == 1) spriteRenderer.flipX = false;
-        else if(lookDirection == -1) spriteRenderer.flipX = true;
+        if(playerInputs.horizontalInput != 0f && !dashing) lookDirection = ((int)playerInputs.horizontalInput);
+        if(rb.velocity.x > 0) spriteRenderer.flipX = false;
+        else if(rb.velocity.x < 0) spriteRenderer.flipX = true;
+
+        dashDirection = transform.right * lookDirection * dashForce;
     }
     /// <summary>
     /// Handles the movement of the player (horizontal movement, jump and dash).
     /// </summary>
     private void HandleMovement()
     {
-        #region Walking
+        Walk();
+        Jump();
+        if(!canBoost)Dash();
+        if(!dashing)Boost();
+        
+        Debug.DrawRay(transform.position, boostDirection, Color.yellow);
+    }
+
+    private void Walk()
+    {
         direction = ((int)playerInputs.horizontalInput);
         if(!dashing) rb.velocity = new Vector2(direction * speed , rb.velocity.y);
-        #endregion
-        #region Jumping
+    }
+
+    private void Jump()
+    {
         if(Grounded() && playerInputs.jump == 1f && !isJumping && !dashing)
         {
             isJumping = true;
@@ -80,18 +110,15 @@ public class PlayerMovement : MonoBehaviour
         }
 
         if(playerInputs.jump == 0) isJumping = false;
-        #endregion
-        #region Dash
+    }
+
+    private void Dash()
+    {
         if(Grounded() && dashInternalCooldown <= 0f && playerInputs.dash == 0f) canDash = true;
         if(dashInternalCooldown > 0f) dashInternalCooldown -= Time.deltaTime;
-        if(dashing){
-            rb.velocity = transform.right * lookDirection * dashForce;
-            currentDashTimer -= Time.deltaTime;
-            
-            if(currentDashTimer <= 0f) dashing = false;
-        }
 
-        if(playerInputs.dash == 1 && dashInternalCooldown <= 0f && canDash){
+        if(playerInputs.dash == 1f && dashInternalCooldown <= 0f && canDash)
+        {
             jumpTimer = 0;
             isJumping = true;
             canDash = false;
@@ -100,7 +127,71 @@ public class PlayerMovement : MonoBehaviour
             currentDashTimer = dashTimer;
             rb.velocity = Vector2.zero;
         }
-        #endregion
+
+        if(dashing)
+        {
+            rb.velocity = dashDirection;
+            currentDashTimer -= Time.deltaTime;
+            if(currentDashTimer <= 0f) dashing = false;
+        }
+    }
+
+    private void Boost()
+    {
+        if(boostInternalCooldown <= 0f)
+        {
+            if(playerInputs.boost == 1f)
+            {
+                if(onBoostInternal > 0f){
+                    arrow.SetActive(true);
+                    Vector2 direction = new Vector2(
+                        fishyPos.position.x - arrow.transform.position.x,
+                        fishyPos.position.y - arrow.transform.position.y
+                    );
+                    arrow.transform.up = direction;
+                    rb.velocity = Vector2.zero;
+
+                    canBoost = true;
+                    currentBoostTimer = boostTimer;
+
+                    boostCam.SetActive(true);
+                    Time.timeScale = 0f;
+                    onBoostInternal -= Time.unscaledDeltaTime;
+                }
+                else
+                {
+                    if(currentBoostTimer > 0)boosting = true;
+                    boostCam.SetActive(false);
+                    Time.timeScale = 1f;
+                }
+            }
+            if(playerInputs.boost == 0f && canBoost && currentBoostTimer > 0)
+            {
+                onBoostInternal = onBoost;
+                boosting = true;
+                canBoost = false;
+
+                boostCam.SetActive(false);
+                Time.timeScale = 1f;
+            }
+        }
+
+        if(boosting)
+        {
+            arrow.SetActive(false);
+            boostInternalCooldown = boostCooldown;
+            rb.velocity = arrow.transform.up * boostForce;
+            currentBoostTimer -= Time.unscaledDeltaTime;
+            if(currentBoostTimer <= 0f) boosting = false;
+        }
+
+        if(!boosting && playerInputs.boost == 0f)
+        {
+            onBoostInternal = onBoost;
+            canBoost = false;
+        }
+
+        if(boostInternalCooldown > 0f) boostInternalCooldown -= Time.unscaledDeltaTime;
     }
     /// <summary>
     /// Returns true if the player is touching an object with the ground layer on it.
@@ -115,8 +206,7 @@ public class PlayerMovement : MonoBehaviour
         if(collision2D.gameObject.layer == 6)
         {
             collisionNormal = collision2D.GetContact(0).normal.y;
-            if(collisionNormal < 0) jumpTimer = 0;
-            Debug.Log(collisionNormal);
+            if(collisionNormal < 0f) jumpTimer = 0f;
         }
     }
 }

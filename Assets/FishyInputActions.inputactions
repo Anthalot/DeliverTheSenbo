@@ -1,0 +1,52 @@
+{
+    "name": "FishyInputActions",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "cf1f409c-5b2e-4d27-b5f2-fbdd69bcf1a3",
+            "actions": [
+                {
+                    "name": "CursorMovement",
+                    "type": "Value",
+                    "id": "ccf40780-45b2-447d-bdbb-c753c6563f8a",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "JoystickMovement1",
+                    "type": "PassThrough",
+                    "id": "80d6cead-1327-440f-81d3-69338dec0f5e",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "1b26af1d-053f-4863-8e49-b194ef825177",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CursorMovement",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cf6b2b9e-1952-4d5f-92da-72dded2ae274",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "JoystickMovement1",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

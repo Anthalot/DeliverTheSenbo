@@ -10,6 +10,7 @@ public class ParticleManager : MonoBehaviour
     public ParticleSystem dashParticle;
     public ParticleSystem stepParticle;
     public ParticleSystem landParticle;
+    public ParticleSystem boostChargeParticle;
 
     bool isJumping;
     float collisionNormal;
@@ -19,6 +20,7 @@ public class ParticleManager : MonoBehaviour
         HandleStepParticles();
         HandleJumpParticles();
         HandleDashParticles();
+        HandleBoostChargeParticles();
     }
     /// <summary>
     /// Handles the step particles.
@@ -42,8 +44,15 @@ public class ParticleManager : MonoBehaviour
     {
         if(playerMovement.rb.velocity.x >= 1) dashParticle.gameObject.transform.localScale = new Vector3(1, 1, 1);
         if(playerMovement.rb.velocity.x <= -1) dashParticle.gameObject.transform.localScale = new Vector3(-1, 1, 1);
-        if(playerMovement.dashing && !dashParticle.isPlaying) dashParticle.Play();
-        
+        if(playerMovement.dashing && !dashParticle.isPlaying || playerMovement.boosting && !dashParticle.isPlaying) dashParticle.Play();
+    }
+    /// <summary>
+    /// Handles the boost charge particles.
+    /// </sumary>
+    void HandleBoostChargeParticles()
+    {
+        if(playerMovement.boostCam.activeSelf && !boostChargeParticle.isPlaying) boostChargeParticle.Play();
+        else if(!playerMovement.boostCam.activeSelf) boostChargeParticle.Stop();
     }
 
     void OnCollisionEnter2D(Collision2D collision2D)

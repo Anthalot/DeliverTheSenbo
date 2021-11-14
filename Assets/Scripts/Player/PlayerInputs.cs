@@ -9,6 +9,7 @@ public class PlayerInputs : MonoBehaviour
     public float horizontalInput;
     public float jump;
     public float dash;
+    public float boost;
 
     // When the object this script is attached to checks if the input actions is initialized.
     private void OnEnable()
@@ -20,6 +21,7 @@ public class PlayerInputs : MonoBehaviour
             playerInputActions.Player.Move.performed += i => movementInput = i.ReadValue<Vector2>();
             playerInputActions.Player.Jump.performed += i => jump = i.ReadValue<float>();
             playerInputActions.Player.Dash.performed += i => dash = i.ReadValue<float>();
+            playerInputActions.Player.Boost.performed += i => boost = i.ReadValue<float>();
         }
         playerInputActions.Enable();
     }
